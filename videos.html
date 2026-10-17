@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C1B1A">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Converta vídeos entre MP4, MOV, MKV, WEBM, AVI, WMV, M4V e 3GP — direto no navegador, sem enviar nada para a internet.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vídeos">
+<title>Conversor de Vídeos</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg:#1C1B1A;
+    --surface:#242220;
+    --surface-2:#2B2823;
+    --border:#3A362F;
+    --border-soft:#2F2C27;
+    --text:#F2EFE9;
+    --text-dim:#A39A8E;
+    --accent:#E8A33D;
+    --accent-ink:#221A0E;
+    --accent-soft:rgba(232,163,61,0.14);
+    --ok:#7DB99B;
+    --error:#E07A63;
+    --radius:16px;
+    --radius-sm:12px;
+    --gx:16px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+    min-height:100vh;
+  }
+  button,select{touch-action:manipulation;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+  .is-hidden{display:none !important;}
+  .ico{width:20px;height:20px;flex:none;display:block;}
+  .wrap{
+    max-width:860px;
+    margin:0 auto;
+    padding:max(22px,env(safe-area-inset-top)) max(var(--gx),env(safe-area-inset-right)) 56px max(var(--gx),env(safe-area-inset-left));
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .logo{
+    width:52px;height:52px;flex:none;
+    border-radius:16px;
+    background:var(--accent);
+    color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 24px rgba(232,163,61,.22);
+  }
+  .logo .ico{width:28px;height:28px;stroke-width:2.2;}
+  header h1{
+    font-size:clamp(21px,5.4vw,28px);
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.015em;
+    line-height:1.15;
+  }
+  header p{
+    margin:4px 0 0;
+    color:var(--text-dim);
+    font-size:14px;
+  }
+
+  .stack{display:flex;flex-direction:column;gap:14px;}
+  #dropzone{order:1;}
+  #engineNote{order:2;}
+  #controls{order:3;}
+  #listHead{order:4;}
+  #list{order:5;}
+
+  /* ---------- drop zone ---------- */
+  #dropzone{
+    border:2px dashed var(--border);
+    border-radius:var(--radius);
+    background:var(--surface);
+    padding:40px 24px 32px;
+    text-align:center;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    transition:border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  #dropzone:hover{border-color:var(--accent-dim,#B9822F);}
+  #dropzone.drag{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    box-shadow:0 0 0 4px var(--accent-soft);
+  }
+  .dz-icon{
+    width:72px;height:72px;border-radius:50%;
+    background:var(--accent-soft);
+    color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .dz-icon .ico{width:34px;height:34px;}
+  .dz-title{font-size:clamp(18px,4.6vw,22px);font-weight:700;letter-spacing:-0.01em;}
+  .dz-sub{color:var(--text-dim);font-size:14px;margin-top:4px;}
+  .dz-btn{margin-top:2px;}
+  .dz-formats{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:6px;
+    max-width:460px;margin-top:6px;
+  }
+  .chip{
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:12px;
+    padding:4px 9px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    color:var(--text-dim);
+  }
+  .dz-note{font-size:12.5px;color:var(--text-dim);}
+
+  #dropzone.compact{
+    flex-direction:row;
+    text-align:left;
+    padding:12px 16px;
+    gap:14px;
+    border-width:1.5px;
+  }
+  #dropzone.compact .dz-icon{width:44px;height:44px;}
+  #dropzone.compact .dz-icon .ico{width:22px;height:22px;}
+  #dropzone.compact .dz-title{font-size:16px;}
+  #dropzone.compact .dz-sub{margin-top:1px;font-size:13px;}
+  #dropzone.compact .dz-btn,
+  #dropzone.compact .dz-formats,
+  #dropzone.compact .dz-note{display:none;}
+  #fileInput{display:none;}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    min-height:46px;
+    padding:0 18px;
+    font-family:inherit;font-weight:600;font-size:15px;
+    border-radius:var(--radius-sm);
+    border:1.5px solid transparent;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:opacity .15s ease, border-color .15s ease, transform .1s ease, background .15s ease;
+  }
+  .btn:active:not(:disabled){transform:scale(.98);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);}
+  .btn-primary:hover:not(:disabled){opacity:.92;}
+  .btn-ghost{background:transparent;color:var(--text);border-color:var(--border);}
+  .btn-ghost:hover:not(:disabled){border-color:var(--accent);}
+  .btn-sm{min-height:40px;padding:0 14px;font-size:14px;}
+  .btn-text{
+    background:none;border:0;color:var(--text-dim);
+    min-height:40px;padding:0 10px;border-radius:10px;
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .btn-text:hover{color:var(--error);}
+  .btn-icon{
+    width:44px;height:44px;flex:none;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;color:var(--text-dim);
+    border:1.5px solid var(--border-soft);border-radius:12px;cursor:pointer;
+  }
+  .btn-icon:hover{color:var(--error);border-color:var(--error);}
+  button:focus-visible,select:focus-visible,#dropzone:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  /* ---------- controls bar ---------- */
+  #controls{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:12px 14px;
+  }
+  .ctrl-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .field-label{
+    display:flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:600;color:var(--text-dim);
+    white-space:nowrap;
+  }
+  select{
+    background:var(--surface-2);
+    color:var(--text);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-sm);
+    min-height:44px;
+    padding:0 12px;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  /* ---------- list ---------- */
+  #listHead{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 2px;
+    color:var(--text-dim);font-size:14px;font-weight:600;
+  }
+  #list{display:flex;flex-direction:column;gap:12px;}
+  .item{
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:14px;
+    display:grid;
+    grid-template-columns:56px minmax(0,1fr) auto auto 44px;
+    grid-template-areas:"thumb meta path actions remove";
+    align-items:center;
+    gap:14px;
+  }
+  .item.is-ok{border-color:rgba(125,185,155,.35);}
+  .item.is-err{border-color:rgba(224,122,99,.45);}
+  .thumb{
+    grid-area:thumb;
+    width:56px;height:56px;border-radius:12px;
+    background:var(--surface-2);
+    object-fit:cover;
+    border:1px solid var(--border-soft);
+  }
+  .thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+  .meta{grid-area:meta;min-width:0;}
+  .fname{
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:14px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .fsize{font-size:12.5px;color:var(--text-dim);margin-top:2px;}
+  .fstatus{
+    display:flex;align-items:flex-start;gap:6px;
+    font-size:13px;font-weight:600;margin-top:5px;
+    color:var(--text-dim);
+  }
+  .fstatus .ico{width:16px;height:16px;margin-top:1px;}
+  .fstatus.ok{color:var(--ok);}
+  .fstatus.err{color:var(--error);}
+  .fstatus.busy{color:var(--accent);}
+  .fstatus.busy .ico{animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .fstatus.busy .ico{animation-duration:2.5s;} }
+  .path{grid-area:path;display:flex;align-items:center;gap:8px;}
+  .path .ico{width:18px;height:18px;color:var(--text-dim);}
+  .badge{
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:13px;
+    background:var(--surface-2);
+    border:1.5px solid var(--border-soft);
+    border-radius:10px;
+    min-height:44px;padding:0 12px;
+    display:inline-flex;align-items:center;
+    color:var(--text);
+  }
+  .actions{grid-area:actions;display:flex;gap:8px;}
+  .remove{grid-area:remove;}
+
+  footer{
+    margin-top:36px;
+    padding-top:18px;
+    border-top:1px solid var(--border-soft);
+    color:var(--text-dim);
+    font-size:13px;
+    display:flex;align-items:center;gap:10px;
+  }
+  footer .ico{width:18px;height:18px;color:var(--ok);}
+
+  /* ---------- abas Imagens / Vídeos ---------- */
+  .tabs{
+    display:flex;gap:6px;max-width:420px;
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:16px;padding:5px;
+    margin-bottom:18px;
+  }
+  .tabs a{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    min-height:44px;border-radius:12px;
+    color:var(--text-dim);text-decoration:none;font-weight:600;font-size:15px;
+  }
+  .tabs a:hover{color:var(--text);}
+  .tabs a.active{background:var(--accent);color:var(--accent-ink);}
+  @media (max-width:720px){ .tabs{max-width:none;} }
+  @media (max-width:380px){ .tabs a{gap:6px;font-size:14px;padding:0 4px;} }
+
+  /* ---------- celular ---------- */
+  @media (max-width:720px){
+    .wrap{padding-bottom:0;}
+    header{margin-bottom:18px;}
+    .logo{width:46px;height:46px;border-radius:14px;}
+    #dropzone{padding:30px 18px 24px;}
+    .dz-btn{width:100%;max-width:340px;min-height:52px;font-size:16px;}
+    #dropzone.compact{padding:10px 14px;}
+
+    .item{
+      grid-template-columns:56px minmax(0,1fr) 44px;
+      grid-template-areas:
+        "thumb meta remove"
+        "path path path"
+        "actions actions actions";
+      row-gap:12px;
+    }
+    .btn-text{min-height:44px;}
+    .path{width:100%;}
+    .path select{flex:1;min-width:0;}
+    .actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;gap:10px;}
+    .actions .btn{min-height:50px;font-size:16px;padding:0 10px;min-width:0;}
+
+    #controls{
+      order:6;
+      position:sticky;bottom:0;z-index:5;
+      flex-direction:column;align-items:stretch;flex-wrap:nowrap;
+      gap:10px;
+      margin:0 calc(-1 * var(--gx));
+      padding:12px var(--gx) calc(12px + env(safe-area-inset-bottom));
+      border-width:1px 0 0;
+      border-radius:20px 20px 0 0;
+      background:rgba(36,34,32,.96);
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      box-shadow:0 -12px 32px rgba(0,0,0,.4);
+    }
+    #controls .ctrl-group{flex-wrap:nowrap;}
+    #controls .ctrl-group:first-child{justify-content:space-between;}
+    #controls select{flex:1;min-width:0;}
+    #controls .ctrl-group:last-child .btn{flex:1;min-width:0;min-height:50px;font-size:16px;padding:0 10px;}
+    #controls .ctrl-group:last-child .btn-primary{flex:1.4;}
+
+    footer{margin-top:28px;padding-bottom:28px;}
+  }
+  @media (max-width:360px){
+    .badge{padding:0 9px;}
+    .dz-title{font-size:17px;}
+  }
+
+
+  /* ---------- extras da página de vídeos ---------- */
+  .tabs{
+    display:flex;gap:6px;max-width:420px;
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:16px;padding:5px;
+    margin-bottom:18px;
+  }
+  .tabs a{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    min-height:44px;border-radius:12px;
+    color:var(--text-dim);text-decoration:none;font-weight:600;font-size:15px;
+  }
+  .tabs a:hover{color:var(--text);}
+  .tabs a.active{background:var(--accent);color:var(--accent-ink);}
+  .note{
+    display:flex;align-items:center;gap:12px;
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    font-size:14px;color:var(--text-dim);
+  }
+  .note .ico{color:var(--accent);}
+  .note .grow{flex:1;min-width:0;}
+  .note.loading .ico{animation:spin 1s linear infinite;}
+  .note.error{border-color:rgba(224,122,99,.45);}
+  .note.error .ico{color:var(--error);}
+  .note .btn{min-height:40px;}
+  .bar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin-top:9px;}
+  .bar > i{display:block;height:100%;width:3%;background:var(--accent);border-radius:999px;transition:width .3s linear;}
+  .warn{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;color:#D9B26B;margin-top:5px;}
+  .warn .ico{width:16px;height:16px;margin-top:1px;}
+  .fstatus.wait{color:var(--text-dim);}
+  .selects{display:flex;gap:12px;flex-wrap:wrap;}
+  .sel{display:flex;flex-direction:column;gap:4px;}
+  .sel label{font-size:12px;font-weight:600;color:var(--text-dim);}
+  .item select:disabled{opacity:.5;cursor:not-allowed;}
+  #controls .selects{order:1;}
+  #controls .actions-group{order:2;}
+  .more{order:3;flex-basis:100%;border-top:1px solid var(--border-soft);padding-top:8px;}
+  .more summary{
+    list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    min-height:44px;color:var(--text-dim);font-weight:600;font-size:14px;border-radius:10px;padding:0 6px;
+  }
+  .more summary::-webkit-details-marker{display:none;}
+  .more summary:hover{color:var(--text);}
+  .more[open] summary{color:var(--text);}
+  .more-body{display:flex;flex-direction:column;gap:10px;padding:4px 2px 6px;}
+  .hint{margin:0;font-size:13px;line-height:1.45;color:var(--text-dim);}
+  @media (max-width:380px){ .tabs a{gap:6px;font-size:14px;padding:0 4px;} }
+  @media (max-width:720px){
+    .tabs{max-width:none;}
+    #controls .selects,.more-body .selects{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    #controls .sel select{width:100%;}
+    #controls .selects{order:1;}
+    .more{order:2;padding-top:2px;}
+    #controls .actions-group{order:3;flex-wrap:nowrap;}
+    #controls .actions-group .btn{flex:1;min-width:0;min-height:50px;font-size:16px;padding:0 10px;}
+    #controls .actions-group .btn-primary{flex:1.3;}
+  }
+  @media (max-width:360px){ #controls .actions-group .btn{font-size:15px;gap:6px;} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <nav class="tabs" aria-label="Tipo de arquivo">
+    <a href="index.html"><span data-icon="image"></span>Imagens</a>
+    <a href="videos.html" class="active" aria-current="page"><span data-icon="film"></span>Vídeos</a>
+    <a href="audio.html"><span data-icon="music"></span>Áudio</a>
+  </nav>
+
+  <header>
+    <div class="logo" data-icon="film" aria-hidden="true"></div>
+    <div>
+      <h1>Conversor de Vídeos</h1>
+      <p>Troque o formato dos seus vídeos, direto no navegador.</p>
+    </div>
+  </header>
+
+  <main class="stack">
+
+    <div id="dropzone" tabindex="0" role="button" aria-label="Escolher vídeos para converter">
+      <div class="dz-icon" id="dzIcon" data-icon="upload" aria-hidden="true"></div>
+      <div class="dz-text">
+        <div class="dz-title" id="dzTitle">Arraste seus vídeos para cá</div>
+        <div class="dz-sub" id="dzSub">ou clique para escolher do computador</div>
+      </div>
+      <div class="btn btn-primary dz-btn"><span data-icon="film"></span>Escolher vídeos</div>
+      <div class="dz-formats" aria-label="Formatos de saída">
+        <span class="chip">MP4</span><span class="chip">MOV</span><span class="chip">MKV</span><span class="chip">WEBM</span><span class="chip">AVI</span><span class="chip">WMV</span><span class="chip">M4V</span><span class="chip">3GP</span>
+      </div>
+      <div class="dz-note">Vídeos grandes levam um tempo: a conversão roda no seu aparelho. Deixe esta aba aberta.</div>
+    </div>
+    <input type="file" id="fileInput" accept="video/*,.mp4,.mov,.mkv,.webm,.avi,.wmv,.m4v,.3gp,.3g2,.flv,.mpg,.mpeg,.ts,.mts,.m2ts,.ogv,.vob" multiple>
+
+    <div id="engineNote" class="note is-hidden" role="status"></div>
+
+    <div id="listHead" class="is-hidden">
+      <span id="countLabel">0 vídeos</span>
+      <button class="btn-text" id="clearBtn" type="button"><span data-icon="trash"></span>Limpar lista</button>
+    </div>
+
+    <div id="list"></div>
+
+    <div id="controls" class="is-hidden">
+      <div class="ctrl-group selects">
+        <div class="sel">
+          <label for="globalFormat">Converter para</label>
+          <select id="globalFormat">
+            <option value="mp4" selected>MP4</option>
+            <option value="mov">MOV</option>
+            <option value="mkv">MKV</option>
+            <option value="webm">WEBM</option>
+            <option value="avi">AVI</option>
+            <option value="wmv">WMV</option>
+            <option value="m4v">M4V</option>
+            <option value="3gp">3GP</option>
+          </select>
+        </div>
+        <div class="sel">
+          <label for="mode">Modo</label>
+          <select id="mode">
+            <option value="rapido" selected>Rápido</option>
+            <option value="compat">Compatível</option>
+          </select>
+        </div>
+      </div>
+      <div class="ctrl-group actions-group">
+        <button class="btn btn-primary" id="convertAllBtn" type="button"><span data-icon="bolt"></span>Converter tudo</button>
+        <button class="btn btn-ghost" id="downloadZipBtn" type="button" disabled><span data-icon="archive"></span>Baixar .zip</button>
+      </div>
+      <details class="more">
+        <summary><span data-icon="sliders"></span>Mais opções</summary>
+        <div class="more-body">
+          <div class="selects">
+            <div class="sel">
+              <label for="quality">Qualidade</label>
+              <select id="quality">
+                <option value="alta">Alta</option>
+                <option value="media" selected>Equilibrada</option>
+                <option value="baixa">Arquivo menor</option>
+              </select>
+            </div>
+            <div class="sel">
+              <label for="size">Tamanho do vídeo</label>
+              <select id="size">
+                <option value="0" selected>Original</option>
+                <option value="1080">até 1080p</option>
+                <option value="720">até 720p</option>
+                <option value="480">até 480p</option>
+              </select>
+            </div>
+          </div>
+          <p class="hint" id="modeHint"></p>
+        </div>
+      </details>
+    </div>
+
+  </main>
+
+  <footer>
+    <span data-icon="lock"></span>
+    <span>Tudo acontece no seu aparelho — seus vídeos nunca saem dele.</span>
+  </footer>
+
+</div>
+
+<!-- o conversor (ffmpeg.wasm) é baixado sob demanda pelo próprio script abaixo -->
+<!-- zip export -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- configuração ----------
+  const CDN = 'https://cdn.jsdelivr.net/npm/@ffmpeg/';
+  const URLS = {
+    core: CDN + 'core@0.12.6/dist/umd/ffmpeg-core.js',
+    wasm: CDN + 'core@0.12.6/dist/umd/ffmpeg-core.wasm'
+  };
+  const WASM_BYTES = 32129114;
+  const FORMATS = ['mp4','mov','mkv','webm','avi','wmv','m4v','3gp'];
+  const IN_EXTS = ['mp4','mov','mkv','webm','avi','wmv','m4v','3gp','3g2','flv','mpg','mpeg','ts','mts','m2ts','ogv','vob'];
+  const MIME = {
+    mp4:'video/mp4', m4v:'video/x-m4v', mov:'video/quicktime', mkv:'video/x-matroska',
+    webm:'video/webm', avi:'video/x-msvideo', wmv:'video/x-ms-wmv', '3gp':'video/3gpp'
+  };
+  const QUALITY = {
+    alta:  { crf:20, vp8crf:6,  vp8b:'6M',   q:2 },
+    media: { crf:24, vp8crf:12, vp8b:'3M',   q:4 },
+    baixa: { crf:28, vp8crf:20, vp8b:'1500k', q:8 }
+  };
+
+  const $ = id => document.getElementById(id);
+  const dropzone = $('dropzone'), fileInput = $('fileInput'), controls = $('controls');
+  const globalFormat = $('globalFormat'), qualitySel = $('quality'), modeSel = $('mode'), sizeSel = $('size'), modeHint = $('modeHint'), listEl = $('list');
+  const convertAllBtn = $('convertAllBtn'), downloadZipBtn = $('downloadZipBtn'), clearBtn = $('clearBtn');
+  const listHead = $('listHead'), countLabel = $('countLabel');
+  const dzIcon = $('dzIcon'), dzTitle = $('dzTitle'), dzSub = $('dzSub'), engineNote = $('engineNote');
+
+  let items = [];
+  let seq = 0;
+  let thumbQueue = Promise.resolve();
+  let queue = [];
+  let running = false;
+
+  // ---------- helpers ----------
+  function extOf(name){ const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+  function baseName(name){ return name.replace(/\.[^.]+$/, ''); }
+  function isVideoFile(f){ return (f.type || '').indexOf('video/') === 0 || IN_EXTS.indexOf(extOf(f.name)) !== -1; }
+  function humanSize(b){
+    if (b == null) return '—';
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+    return (b/1073741824).toFixed(2) + ' GB';
+  }
+  function humanTime(s){
+    if (!isFinite(s) || s <= 0) return '';
+    s = Math.round(s);
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(sec).padStart(2,'0');
+  }
+  function isTouch(){ return window.matchMedia && window.matchMedia('(hover: none)').matches; }
+  function cap(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function bigFileLimit(){ return isTouch() ? 400*1048576 : 1073741824; }
+
+  // ---------- ícones ----------
+  const ICONS = {
+    swap:    '<path d="M17 3l4 4-4 4"/><path d="M3 11V9a2 2 0 0 1 2-2h16"/><path d="M7 21l-4-4 4-4"/><path d="M21 13v2a2 2 0 0 1-2 2H3"/>',
+    upload:  '<path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+    plus:    '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    image:   '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.8"/><path d="M21 15l-3.6-3.6a2 2 0 0 0-2.8 0L6 20"/>',
+    film:    '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M3 9h5"/><path d="M3 15h5"/><path d="M16 9h5"/><path d="M16 15h5"/>',
+    download:'<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+    refresh: '<path d="M21 12a9 9 0 0 0-15.5-6.2L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15.5 6.2L21 16"/><path d="M16 16h5v5"/>',
+    arrow:   '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+    x:       '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+    music:   '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+    stop:    '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
+    trash:   '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/>',
+    check:   '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.8"/>',
+    alert:   '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.5v.01"/>',
+    loader:  '<path d="M12 3a9 9 0 1 0 9 9"/>',
+    clock:   '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    lock:    '<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    archive: '<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>',
+    bolt:    '<path d="M13 3L5 13.5h6L10 21l8-10.5h-6L13 3z"/>',
+    sliders: '<path d="M4 6h10"/><path d="M18 6h2"/><circle cx="16" cy="6" r="2"/><path d="M4 12h2"/><path d="M10 12h10"/><circle cx="8" cy="12" r="2"/><path d="M4 18h10"/><path d="M18 18h2"/><circle cx="16" cy="18" r="2"/>'
+  };
+  function icon(name){
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || '') + '</svg>';
+  }
+  function hydrateIcons(){ document.querySelectorAll('[data-icon]').forEach(e => { e.innerHTML = icon(e.getAttribute('data-icon')); }); }
+  function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function statusIcon(c){ return c === 'ok' ? 'check' : c === 'err' ? 'alert' : c === 'busy' ? 'loader' : 'clock'; }
+
+  // ---------- argumentos do ffmpeg por formato ----------
+  // <pure>
+  // Quais codecs cada container aceita COPIAR (sem recodificar).
+  // "Rápido": copia tudo que o container suporta. "Compatível": só copia H.264/AAC (toca em tudo).
+  var COPY_OK_FAST = {
+    mp4:  { v:['h264','hevc'], a:['aac','mp3'] },
+    m4v:  { v:['h264','hevc'], a:['aac','mp3'] },
+    mov:  { v:['h264','hevc'], a:['aac','mp3'] },
+    mkv:  { v:['h264','hevc','vp8','vp9','av1','mpeg4'], a:['aac','mp3','opus','vorbis','ac3','eac3','flac'] },
+    webm: { v:['vp8','vp9','av1'], a:['opus','vorbis'] }
+  };
+  var COPY_OK_COMPAT = {
+    mp4:  { v:['h264'], a:['aac'] },
+    m4v:  { v:['h264'], a:['aac'] },
+    mov:  { v:['h264'], a:['aac'] },
+    mkv:  { v:['h264'], a:['aac'] },
+    webm: { v:['vp8','vp9'], a:['opus','vorbis'] }
+  };
+  function planCopy(ext, fast, vcodec, acodec, hasResize){
+    var t = (fast ? COPY_OK_FAST : COPY_OK_COMPAT)[ext];
+    if (!t) return { v:false, a:false };
+    return {
+      v: !hasResize && !!vcodec && t.v.indexOf(vcodec) !== -1,
+      a: !!acodec && t.a.indexOf(acodec) !== -1
+    };
+  }
+  // Lê do log do ffmpeg (-i) o codec do 1º vídeo e do 1º áudio
+  function parseProbe(log){
+    var v = /Stream #\d+:\d+[^\n]*?: Video: ([a-z0-9_]+)/i.exec(log);
+    var a = /Stream #\d+:\d+[^\n]*?: Audio: ([a-z0-9_]+)/i.exec(log);
+    return { v: v ? v[1].toLowerCase() : null, a: a ? a[1].toLowerCase() : null };
+  }
+  // o = { q, fast, maxH, vCopy, aCopy, vcodec }
+  function buildArgs(ext, o, QUALITY){
+    var q = QUALITY[o.q] || QUALITY.media;
+    var preset = o.fast ? 'ultrafast' : 'veryfast';
+    var maxH = ext === '3gp' ? Math.min(o.maxH || 360, 360) : (o.maxH || 0);
+    var vCopy = !!o.vCopy && !maxH, aCopy = !!o.aCopy;
+    var a = [];
+    if (vCopy){
+      a.push('-c:v','copy');
+      if (o.vcodec === 'hevc' && (ext === 'mp4' || ext === 'm4v' || ext === 'mov')) a.push('-tag:v','hvc1');
+    } else {
+      var vf = ['scale=trunc(iw/2)*2:trunc(ih/2)*2'];
+      if (maxH) vf.push("scale=-2:'min(" + maxH + ",ih)'");
+      a.push('-vf', vf.join(','));
+      switch (ext){
+        case 'mp4': case 'm4v': case 'mov': case 'mkv':
+          a.push('-c:v','libx264','-preset',preset,'-crf',String(q.crf),'-pix_fmt','yuv420p'); break;
+        case 'webm':
+          a.push('-c:v','libvpx','-crf',String(q.vp8crf),'-b:v',q.vp8b,'-deadline','realtime','-cpu-used',o.fast ? '8' : '5','-pix_fmt','yuv420p'); break;
+        case 'avi':
+          a.push('-c:v','mpeg4','-q:v',String(q.q),'-pix_fmt','yuv420p'); break;
+        case 'wmv':
+          a.push('-c:v','wmv2','-q:v',String(q.q)); break;
+        case '3gp':
+          a.push('-c:v','libx264','-profile:v','baseline','-level','3.0','-preset',preset,'-crf',String(q.crf + 2),'-pix_fmt','yuv420p'); break;
+        default: throw new Error('formato de saída não suportado');
+      }
+    }
+    if (aCopy){
+      a.push('-c:a','copy');
+    } else {
+      switch (ext){
+        case 'mp4': case 'm4v': case 'mov': case 'mkv': a.push('-c:a','aac','-b:a','128k'); break;
+        case 'webm': a.push('-c:a','opus','-strict','-2','-b:a','96k'); break;
+        case 'avi':  a.push('-c:a','libmp3lame','-b:a','160k'); break;
+        case 'wmv':  a.push('-c:a','wmav2','-b:a','128k'); break;
+        case '3gp':  a.push('-c:a','aac','-b:a','64k','-ac','1'); break;
+      }
+    }
+    if (ext === 'mp4' || ext === 'm4v' || ext === 'mov') a.push('-movflags','+faststart');
+    return a;
+  }
+  // </pure>
+
+  // ---------- motor (ffmpeg.wasm) ----------
+  let ffmpeg = null, enginePromise = null, assets = null, currentItem = null, lastLogs = [];
+  let wakeLock = null;
+
+  function setEngine(state, info){
+    engineNote.className = 'note is-hidden';
+    engineNote.innerHTML = '';
+    if (state === 'loading'){
+      engineNote.className = 'note loading';
+      engineNote.innerHTML = icon('loader');
+      const t = el('div', 'grow', 'Preparando o conversor' + (info > 0 ? ' — ' + Math.round(info*100) + '%' : '…') + ' (cerca de 30 MB, só na primeira vez)');
+      engineNote.appendChild(t);
+    } else if (state === 'error'){
+      engineNote.className = 'note error';
+      engineNote.innerHTML = icon('alert');
+      engineNote.appendChild(el('div', 'grow', info || 'Não foi possível preparar o conversor.'));
+      const b = el('button', 'btn btn-ghost'); b.type = 'button';
+      b.innerHTML = icon('refresh'); b.appendChild(el('span', null, 'Tentar de novo'));
+      b.addEventListener('click', () => { ensureEngine().catch(() => {}); });
+      engineNote.appendChild(b);
+    }
+  }
+
+  // Lê um arquivo da rede para um ArrayBuffer, informando o progresso (0..1)
+  async function fetchBuffer(url, onProgress){
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('falha ao baixar o conversor (' + res.status + ')');
+    if (!res.body || !onProgress) return await res.arrayBuffer();
+    const reader = res.body.getReader(), chunks = [];
+    let got = 0;
+    for(;;){
+      const r = await reader.read();
+      if (r.done) break;
+      chunks.push(r.value); got += r.value.length;
+      onProgress(Math.min(1, got / WASM_BYTES));
+    }
+    const all = new Uint8Array(got);
+    let off = 0;
+    for (const c of chunks){ all.set(c, off); off += c.length; }
+    return all.buffer;
+  }
+
+  // Código que roda DENTRO do worker (worker clássico, com o núcleo do ffmpeg colado antes).
+  // Não usa import/fetch de blob, por isso funciona até abrindo o arquivo direto do disco (file://).
+  const WORKER_MAIN = '(' + function(){
+    var core = null;
+    self.onmessage = async function(ev){
+      var id = ev.data.id, type = ev.data.type, d = ev.data.data, res, tr = [];
+      try {
+        if (type !== 'LOAD' && !core) throw new Error('conversor não carregado');
+        switch (type){
+          case 'LOAD':
+            core = await createFFmpegCore({ wasmBinary: d.wasm });
+            core.setLogger(function(m){ self.postMessage({ type: 'LOG', data: m }); });
+            core.setProgress(function(p){ self.postMessage({ type: 'PROGRESS', data: p }); });
+            res = true; break;
+          case 'EXEC':       core.setTimeout(-1); core.exec.apply(core, d.args); res = core.ret; core.reset(); break;
+          case 'WRITE_FILE': core.FS.writeFile(d.path, d.data); res = true; break;
+          case 'READ_FILE':  res = core.FS.readFile(d.path); break;
+          case 'DELETE_FILE':core.FS.unlink(d.path); res = true; break;
+          case 'CREATE_DIR': core.FS.mkdir(d.path); res = true; break;
+          case 'DELETE_DIR': core.FS.rmdir(d.path); res = true; break;
+          case 'MOUNT':
+            var fsType = core.FS.filesystems[d.fsType];
+            if (!fsType) throw new Error('sistema de arquivos indisponível');
+            core.FS.mount(fsType, d.options, d.mountPoint); res = true; break;
+          case 'UNMOUNT':    core.FS.unmount(d.mountPoint); res = true; break;
+          default: throw new Error('comando desconhecido');
+        }
+        if (res instanceof Uint8Array) tr.push(res.buffer);
+        self.postMessage({ id: id, type: type, data: res }, tr);
+      } catch (e) {
+        self.postMessage({ id: id, type: 'ERROR', data: String(e && e.message || e) });
+      }
+    };
+  }.toString() + ')();';
+
+  // Pequeno cliente do worker acima (mesma interface que usávamos do ffmpeg.wasm)
+  class MiniFFmpeg {
+    constructor(){ this.worker = null; this.seq = 0; this.pending = new Map(); this.handlers = { log: [], progress: [] }; }
+    on(ev, fn){ this.handlers[ev].push(fn); }
+    _fail(err){ this.pending.forEach(p => p.reject(err)); this.pending.clear(); }
+    call(type, data, transfer){
+      return new Promise((resolve, reject) => {
+        if (!this.worker) return reject(new Error('conversor encerrado'));
+        const id = ++this.seq;
+        this.pending.set(id, { resolve, reject });
+        this.worker.postMessage({ id, type, data }, transfer || []);
+      });
+    }
+    async load(coreSource, wasmBuffer){
+      const url = URL.createObjectURL(new Blob([coreSource, '\n;', WORKER_MAIN], { type: 'text/javascript' }));
+      this.worker = new Worker(url);
+      this.worker.onmessage = ev => {
+        const m = ev.data;
+        if (m.type === 'LOG'){ this.handlers.log.forEach(f => f(m.data)); return; }
+        if (m.type === 'PROGRESS'){ this.handlers.progress.forEach(f => f(m.data)); return; }
+        const p = this.pending.get(m.id);
+        if (!p) return;
+        this.pending.delete(m.id);
+        if (m.type === 'ERROR') p.reject(new Error(m.data)); else p.resolve(m.data);
+      };
+      this.worker.onerror = ev => { this._fail(new Error('o conversor parou de responder' + (ev && ev.message ? ': ' + ev.message : ''))); };
+      const timer = setTimeout(() => this._fail(new Error('o conversor demorou demais para iniciar')), 90000);
+      try { await this.call('LOAD', { wasm: wasmBuffer }); } finally { clearTimeout(timer); }
+    }
+    exec(args){ return this.call('EXEC', { args }); }
+    mount(fsType, options, mountPoint){ return this.call('MOUNT', { fsType, options, mountPoint }); }
+    unmount(mountPoint){ return this.call('UNMOUNT', { mountPoint }); }
+    createDir(path){ return this.call('CREATE_DIR', { path }); }
+    deleteDir(path){ return this.call('DELETE_DIR', { path }); }
+    writeFile(path, data){ return this.call('WRITE_FILE', { path, data }); }
+    readFile(path){ return this.call('READ_FILE', { path }).then(b => new Uint8Array(b.buffer ? b.buffer : b)); }
+    deleteFile(path){ return this.call('DELETE_FILE', { path }); }
+    terminate(){
+      if (this.worker){ this.worker.terminate(); this.worker = null; }
+      this._fail(new Error('cancelado'));
+    }
+  }
+
+  function ensureEngine(){
+    if (enginePromise) return enginePromise;
+    enginePromise = (async () => {
+      setEngine('loading', 0);
+      assets = assets || {};
+      if (!assets.core) assets.core = await (await fetch(URLS.core)).text();
+      if (!assets.wasm) assets.wasm = await fetchBuffer(URLS.wasm, r => setEngine('loading', r));
+      const ff = new MiniFFmpeg();
+      ff.on('log', e => { lastLogs.push(String(e && e.message != null ? e.message : e)); if (lastLogs.length > 60) lastLogs.shift(); });
+      ff.on('progress', e => {
+        if (currentItem && e && isFinite(e.progress)){
+          currentItem.progress = Math.max(0, Math.min(1, e.progress));
+          paintProgress(currentItem);
+        }
+      });
+      await ff.load(assets.core, assets.wasm.slice(0));
+      ffmpeg = ff;
+      setEngine('ready');
+      return ff;
+    })().catch(e => {
+      enginePromise = null; ffmpeg = null;
+      setEngine('error', (e && e.message) ? 'Não foi possível preparar o conversor: ' + e.message : 'Não foi possível preparar o conversor. Verifique a internet e tente de novo.');
+      throw e;
+    });
+    return enginePromise;
+  }
+  function resetEngine(){
+    try { if (ffmpeg) ffmpeg.terminate(); } catch(e){}
+    ffmpeg = null; enginePromise = null;
+  }
+
+  async function acquireWake(){
+    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){ wakeLock = null; }
+  }
+  function releaseWake(){
+    try { if (wakeLock) wakeLock.release(); } catch(e){}
+    wakeLock = null;
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && running && !wakeLock) acquireWake(); });
+  window.addEventListener('beforeunload', e => { if (running){ e.preventDefault(); e.returnValue = ''; } });
+
+  function failMessage(){
+    const log = lastLogs.join('\n');
+    if (/Invalid data found|moov atom not found|could not find codec parameters/i.test(log)) return 'não consegui ler este arquivo (pode estar corrompido)';
+    if (/does not contain any stream|Stream map .* matches no streams|matches no streams/i.test(log)) return 'não encontrei vídeo neste arquivo';
+    if (/Unknown encoder|Encoder .* not found/i.test(log)) return 'esse formato de saída não está disponível';
+    return 'não foi possível converter este vídeo';
+  }
+
+  // ---------- fila de conversão ----------
+  function enqueue(item){
+    if (item.statusClass === 'busy' || item.queued) return;
+    item.queued = true; item.status = 'na fila'; item.statusClass = 'wait';
+    item.resultBlob = null; item.resultSize = null;
+    queue.push(item);
+    render();
+    pump();
+  }
+  async function pump(){
+    if (running) return;
+    running = true;
+    await acquireWake();
+    try {
+      while (queue.length){
+        const it = queue.shift();
+        if (!it.queued) continue;
+        await runItem(it);
+      }
+    } finally {
+      running = false;
+      releaseWake();
+      render();
+    }
+  }
+  function cancelItem(item){
+    if (item.statusClass === 'busy'){
+      item.cancelled = true;
+      if (item.cancelFn) item.cancelFn(); else resetEngine();
+    } else if (item.queued){
+      item.queued = false;
+      queue = queue.filter(x => x !== item);
+      item.status = 'aguardando'; item.statusClass = '';
+      render();
+    }
+  }
+
+  // ---------- caminho rápido: WebCodecs (placa de vídeo) / cópia direta, via mediabunny ----------
+  const FAST_OUT = ['mp4','m4v','mov','mkv','webm'];
+  const MB_URL = 'https://cdn.jsdelivr.net/npm/mediabunny@1.61.6/dist/bundles/mediabunny.min.mjs';
+  let mbPromise = null;
+  function loadMB(){
+    if (!mbPromise) mbPromise = import(MB_URL).catch(e => { mbPromise = null; throw e; });
+    return mbPromise;
+  }
+  async function fastConvert(item, o){
+    const MB = await loadMB();
+    const ext = item.targetExt;
+    const input = new MB.Input({ formats: MB.ALL_FORMATS, source: new MB.BlobSource(item.file) });
+    try {
+      const target = new MB.BufferTarget();
+      const format = ext === 'mov' ? new MB.MovOutputFormat()
+                   : ext === 'mkv' ? new MB.MkvOutputFormat()
+                   : ext === 'webm' ? new MB.WebMOutputFormat()
+                   : new MB.Mp4OutputFormat();
+      const output = new MB.Output({ format: format, target: target });
+      const quality = { alta: MB.QUALITY_HIGH, media: MB.QUALITY_MEDIUM, baixa: MB.QUALITY_LOW }[o.q] || MB.QUALITY_MEDIUM;
+      const VN = { avc: 'h264', hevc: 'hevc', vp8: 'vp8', vp9: 'vp9', av1: 'av1' };
+      const even = n => Math.max(2, 2 * Math.round(n / 2));
+      const conv = await MB.Conversion.init({
+        input: input, output: output, tracks: 'primary',
+        video: async track => {
+          const dh = await track.getDisplayHeight(), dw = await track.getDisplayWidth();
+          const resize = !!(o.maxH && dh > o.maxH);
+          const plan = planCopy(ext, o.fast, VN[await track.getCodec()] || null, null, resize);
+          const v = plan.v ? {} : { quality: quality, forceTranscode: true, codec: ext === 'webm' ? 'vp9' : 'avc' };
+          if (resize){ const h = even(o.maxH); v.height = h; v.width = even(dw * h / dh); v.fit = 'fill'; }
+          return v;
+        },
+        audio: async track => {
+          const plan = planCopy(ext, o.fast, null, await track.getCodec(), false);
+          return plan.a ? {} : { quality: quality, forceTranscode: true, codec: ext === 'webm' ? 'opus' : 'aac' };
+        }
+      });
+      if (!conv.isValid) throw new Error('caminho rápido indisponível: ' + JSON.stringify((conv.discardedTracks || []).map(d => d.reason)));
+      const vt = await input.getPrimaryVideoTrack(), at = await input.getPrimaryAudioTrack();
+      const used = conv.utilizedTracks;
+      if (vt && !used.some(t => t.isVideoTrack())) throw new Error('o navegador não consegue processar este vídeo');
+      if (at && !used.some(t => t.isAudioTrack())) throw new Error('o navegador não consegue processar este áudio');
+      conv.onProgress = p => { item.progress = Math.max(0, Math.min(1, p)); paintProgress(item); };
+      item.cancelFn = () => { try { conv.cancel(); } catch(e){} };
+      await conv.execute();
+      if (item.cancelled) throw new Error('cancelado');
+      if (!target.buffer) throw new Error('saída vazia');
+      item.how = 'modo acelerado';
+      return new Blob([target.buffer], { type: MIME[ext] || 'application/octet-stream' });
+    } finally {
+      item.cancelFn = null;
+      try { if (input.dispose) input.dispose(); } catch(e){}
+    }
+  }
+
+  // ---------- caminho universal: ffmpeg.wasm ----------
+  async function ffmpegConvert(item, o){
+    const ext = item.targetExt;
+    const inExt = extOf(item.name) || 'bin';
+    const inName = 'in_' + item.id + '.' + inExt;
+    const outName = 'out_' + item.id + '.' + ext;
+    const dir = '/in' + item.id;
+    let ff = null, mounted = false, wrote = false;
+    try {
+      ff = await ensureEngine();
+      if (item.cancelled) throw new Error('cancelado');
+      let inPath;
+      try {
+        await ff.createDir(dir);
+        await ff.mount('WORKERFS', { files: [ new File([item.file], inName) ] }, dir);
+        mounted = true; inPath = dir + '/' + inName; window.__videoTest.inputMode = 'workerfs';
+      } catch(e){
+        await ff.writeFile(inName, new Uint8Array(await item.file.arrayBuffer()));
+        wrote = true; inPath = inName; window.__videoTest.inputMode = 'memfs';
+      }
+      let vCopy = false, aCopy = false, vcodec = null;
+      if (FAST_OUT.indexOf(ext) !== -1){
+        lastLogs = [];
+        try { await ff.exec(['-hide_banner', '-i', inPath]); } catch(e){}
+        const pr = parseProbe(lastLogs.join('\n'));
+        const plan = planCopy(ext, o.fast, pr.v, pr.a, !!o.maxH);
+        vCopy = plan.v; aCopy = plan.a; vcodec = pr.v;
+        if (item.cancelled) throw new Error('cancelado');
+      }
+      lastLogs = [];
+      const args = ['-i', inPath, '-map', '0:v:0', '-map', '0:a:0?', '-sn', '-dn']
+        .concat(buildArgs(ext, { q: o.q, fast: o.fast, maxH: o.maxH, vCopy: vCopy, aCopy: aCopy, vcodec: vcodec }, QUALITY), ['-y', outName]);
+      const code = await ff.exec(args);
+      if (item.cancelled) throw new Error('cancelado');
+      if (code !== 0) throw new Error(failMessage());
+      const data = await ff.readFile(outName);
+      item.how = vCopy && aCopy ? 'sem recodificar' : vCopy ? 'vídeo copiado, sem recodificar' : '';
+      return new Blob([data], { type: MIME[ext] || 'application/octet-stream' });
+    } finally {
+      try { if (ff && !item.cancelled){
+        if (mounted){ await ff.unmount(dir); await ff.deleteDir(dir); }
+        if (wrote) await ff.deleteFile(inName);
+        await ff.deleteFile(outName);
+      } } catch(e){}
+    }
+  }
+
+  async function runItem(item){
+    currentItem = item;
+    item.cancelled = false; item.queued = false; item.progress = 0; item.how = ''; item.path = '';
+    item.status = 'convertendo'; item.statusClass = 'busy';
+    lastLogs = [];
+    render();
+    const o = { q: qualitySel.value, fast: modeSel.value === 'rapido', maxH: parseInt(sizeSel.value, 10) || 0 };
+    try {
+      let blob = null;
+      if (FAST_OUT.indexOf(item.targetExt) !== -1){
+        try {
+          blob = await fastConvert(item, o);
+          item.path = 'fast';
+        } catch(e){
+          if (item.cancelled) throw e;
+          console.warn('Caminho rápido indisponível, usando o ffmpeg:', e && e.message);
+          item.progress = 0; item.how = ''; paintProgress(item);
+        }
+      }
+      if (!blob){
+        blob = await ffmpegConvert(item, o);
+        item.path = 'ffmpeg';
+      }
+      item.resultBlob = blob;
+      item.resultSize = blob.size;
+      item.status = 'pronto'; item.statusClass = 'ok';
+    } catch(e){
+      item.resultBlob = null; item.resultSize = null; item.how = '';
+      const msg = (e && e.message) || '';
+      if (item.cancelled){
+        item.status = 'cancelado'; item.statusClass = '';
+      } else if (/out of memory|OOM|memory access|RangeError|Aborted|unreachable/i.test(msg)){
+        resetEngine();
+        item.status = 'faltou memória no navegador — tente um vídeo menor ou o formato MP4';
+        item.statusClass = 'err';
+      } else {
+        item.status = msg || 'não foi possível converter este vídeo';
+        item.statusClass = 'err';
+      }
+    } finally {
+      currentItem = null;
+      item.cancelFn = null;
+      updateZipButton();
+      render();
+    }
+  }
+
+  // ---------- itens ----------
+  function addFiles(list){
+    const files = Array.from(list).filter(isVideoFile);
+    if (!files.length) return;
+    files.forEach(file => {
+      const item = {
+        id: ++seq, file, name: file.name,
+        originalExt: extOf(file.name) || '?',
+        targetExt: globalFormat.value,
+        status: 'aguardando', statusClass: '',
+        thumbUrl: null, duration: 0,
+        resultBlob: null, resultSize: null,
+        queued: false, cancelled: false, progress: 0, ui: null
+      };
+      items.push(item);
+      thumbQueue = thumbQueue.then(() => makeThumb(item));
+    });
+    render();
+  }
+
+  function makeThumb(item){
+    return new Promise(resolve => {
+      const url = URL.createObjectURL(item.file);
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = 'auto';
+      let done = false, dur = 0;
+      const finish = thumb => {
+        if (done) return; done = true;
+        clearTimeout(timer);
+        item.duration = dur; if (thumb) item.thumbUrl = thumb;
+        try { v.removeAttribute('src'); v.load(); } catch(e){}
+        URL.revokeObjectURL(url);
+        render(); resolve();
+      };
+      const timer = setTimeout(() => finish(null), 6000);
+      v.onerror = () => finish(null);
+      v.onloadedmetadata = () => {
+        dur = isFinite(v.duration) ? v.duration : 0;
+        try { v.currentTime = Math.min(1, dur / 2); } catch(e){ finish(null); }
+      };
+      v.onseeked = () => {
+        try {
+          const maxSide = 112, w = v.videoWidth, h = v.videoHeight;
+          if (!w || !h) return finish(null);
+          const s = Math.min(maxSide / w, maxSide / h, 1);
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          finish(c.toDataURL('image/jpeg', 0.8));
+        } catch(e){ finish(null); }
+      };
+      v.src = url;
+    });
+  }
+
+  function removeItem(id){
+    const it = items.find(i => i.id === id);
+    if (it) cancelItem(it);
+    items = items.filter(i => i.id !== id);
+    render();
+  }
+
+  function saveBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  function outFilename(item){
+    const same = item.targetExt === extOf(item.name);
+    return baseName(item.name) + (same ? '-convertido' : '') + '.' + item.targetExt;
+  }
+  function downloadItem(item){ if (item.resultBlob) saveBlob(item.resultBlob, outFilename(item)); }
+
+  async function downloadAllZip(){
+    const ready = items.filter(i => i.resultBlob);
+    if (!ready.length) return;
+    downloadZipBtn.disabled = true;
+    const label = downloadZipBtn.innerHTML;
+    downloadZipBtn.textContent = 'Preparando…';
+    try {
+      const zip = new JSZip(), used = new Set();
+      ready.forEach(item => {
+        let name = outFilename(item), n = 1;
+        while (used.has(name)) name = baseName(outFilename(item)) + '-' + (n++) + '.' + item.targetExt;
+        used.add(name);
+        zip.file(name, item.resultBlob);
+      });
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
+      saveBlob(blob, 'videos-convertidos.zip');
+    } finally {
+      downloadZipBtn.innerHTML = label;
+      updateZipButton();
+    }
+  }
+  function updateZipButton(){ downloadZipBtn.disabled = !items.some(i => i.resultBlob); }
+
+  // ---------- progresso (sem re-renderizar a lista) ----------
+  function paintProgress(item){
+    if (!item.ui) return;
+    const p = item.progress || 0;
+    if (item.ui.fill) item.ui.fill.style.width = Math.max(3, Math.round(p * 100)) + '%';
+    if (item.ui.text) item.ui.text.textContent = p > 0 ? 'Convertendo… ' + Math.round(p * 100) + '%' : 'Convertendo…';
+  }
+
+  // ---------- render ----------
+  function render(){
+    const has = items.length > 0;
+    controls.classList.toggle('is-hidden', !has);
+    listHead.classList.toggle('is-hidden', !has);
+    dropzone.classList.toggle('compact', has);
+    countLabel.textContent = items.length + (items.length === 1 ? ' vídeo' : ' vídeos');
+    if (has){
+      dzIcon.innerHTML = icon('plus');
+      dzTitle.textContent = 'Adicionar mais vídeos';
+      dzSub.textContent = isTouch() ? 'toque aqui' : 'arraste ou clique aqui';
+    } else {
+      dzIcon.innerHTML = icon('upload');
+      dzTitle.textContent = isTouch() ? 'Toque para escolher seus vídeos' : 'Arraste seus vídeos para cá';
+      dzSub.textContent = isTouch() ? 'da galeria ou dos arquivos' : 'ou clique para escolher do computador';
+    }
+
+    listEl.innerHTML = '';
+    items.forEach(item => {
+      const busy = item.statusClass === 'busy', waiting = item.queued;
+      const row = el('div', 'item' + (item.statusClass === 'ok' || item.statusClass === 'err' ? ' is-' + item.statusClass : ''));
+
+      let thumb;
+      if (item.thumbUrl){
+        thumb = document.createElement('img'); thumb.className = 'thumb'; thumb.src = item.thumbUrl; thumb.alt = '';
+      } else {
+        thumb = el('div', 'thumb ph'); thumb.innerHTML = icon('film');
+      }
+      row.appendChild(thumb);
+
+      const meta = el('div', 'meta');
+      meta.appendChild(el('div', 'fname', item.name));
+      const t = humanTime(item.duration);
+      meta.appendChild(el('div', 'fsize', humanSize(item.file.size) + (item.resultSize ? '  →  ' + humanSize(item.resultSize) : '') + (t ? '  ·  ' + t : '')));
+      const fstatus = el('div', 'fstatus ' + item.statusClass);
+      const sIcon = el('span'); sIcon.innerHTML = icon(statusIcon(item.statusClass));
+      const sText = el('span', null, cap(item.status) + (item.statusClass === 'ok' && item.how ? ' · ' + item.how : ''));
+      fstatus.appendChild(sIcon); fstatus.appendChild(sText);
+      meta.appendChild(fstatus);
+      let fill = null;
+      if (busy){
+        const bar = el('div', 'bar'); fill = document.createElement('i'); bar.appendChild(fill);
+        meta.appendChild(bar);
+      }
+      if (item.file.size > bigFileLimit() && !item.resultBlob){
+        const w = el('div', 'warn'); w.innerHTML = icon('alert');
+        w.appendChild(el('span', null, 'Arquivo grande: pode faltar memória no navegador.'));
+        meta.appendChild(w);
+      }
+      row.appendChild(meta);
+      item.ui = { fill: fill, text: busy ? sText : null };
+      if (busy) paintProgress(item);
+
+      const path = el('div', 'path');
+      path.appendChild(el('span', 'badge', item.originalExt.toUpperCase()));
+      const arrow = el('span'); arrow.innerHTML = icon('arrow'); path.appendChild(arrow);
+      const select = document.createElement('select');
+      select.setAttribute('aria-label', 'Formato de destino de ' + item.name);
+      select.disabled = busy || waiting;
+      FORMATS.forEach(f => {
+        const o = document.createElement('option');
+        o.value = f; o.textContent = f.toUpperCase();
+        if (f === item.targetExt) o.selected = true;
+        select.appendChild(o);
+      });
+      select.addEventListener('change', () => {
+        item.targetExt = select.value;
+        item.status = 'aguardando'; item.statusClass = '';
+        item.resultBlob = null; item.resultSize = null;
+        updateZipButton(); render();
+      });
+      path.appendChild(select);
+      row.appendChild(path);
+
+      const actions = el('div', 'actions');
+      const mainBtn = el('button', 'btn btn-ghost btn-sm'); mainBtn.type = 'button';
+      if (busy || waiting){
+        mainBtn.innerHTML = icon('stop');
+        mainBtn.appendChild(el('span', null, busy ? 'Cancelar' : 'Tirar da fila'));
+        mainBtn.addEventListener('click', () => cancelItem(item));
+      } else {
+        mainBtn.innerHTML = icon('refresh');
+        mainBtn.appendChild(el('span', null, item.statusClass === 'ok' ? 'Refazer' : 'Converter'));
+        mainBtn.addEventListener('click', () => enqueue(item));
+      }
+      const dl = el('button', 'btn btn-primary btn-sm'); dl.type = 'button';
+      dl.innerHTML = icon('download'); dl.appendChild(el('span', null, 'Baixar'));
+      dl.disabled = !item.resultBlob;
+      dl.addEventListener('click', () => downloadItem(item));
+      actions.appendChild(mainBtn); actions.appendChild(dl);
+      row.appendChild(actions);
+
+      const rm = el('button', 'btn-icon remove'); rm.type = 'button';
+      rm.setAttribute('aria-label', 'Remover ' + item.name);
+      rm.innerHTML = icon('x');
+      rm.addEventListener('click', () => removeItem(item.id));
+      row.appendChild(rm);
+
+      listEl.appendChild(row);
+    });
+    updateZipButton();
+  }
+
+  // ---------- eventos ----------
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value = ''; });
+  ['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+
+  globalFormat.addEventListener('change', () => {
+    items.filter(i => i.statusClass !== 'ok' && i.statusClass !== 'busy' && !i.queued).forEach(i => { i.targetExt = globalFormat.value; });
+    render();
+  });
+  convertAllBtn.addEventListener('click', () => {
+    items.forEach(i => { if (i.statusClass !== 'ok' && i.statusClass !== 'busy' && !i.queued) enqueue(i); });
+  });
+  downloadZipBtn.addEventListener('click', downloadAllZip);
+  clearBtn.addEventListener('click', () => { items.slice().forEach(cancelItem); items = []; render(); });
+
+  function updateHint(){
+    modeHint.textContent = modeSel.value === 'rapido'
+      ? 'Rápido: copia o vídeo sem recodificar quando o formato permite (quase instantâneo) e usa a placa de vídeo quando precisa recodificar.'
+      : 'Compatível: gera H.264/AAC (toca em qualquer aparelho). Recodifica quando o arquivo não está nesse padrão, então demora mais.';
+  }
+  modeSel.addEventListener('change', updateHint);
+  updateHint();
+
+  // exposto só para testes automatizados
+  window.__videoTest = {
+    buildArgs: (e, o) => buildArgs(e, o, QUALITY), planCopy: planCopy, parseProbe: parseProbe,
+    items: () => items.map(i => ({ name: i.name, path: i.path, how: i.how, status: i.status }))
+  };
+
+  hydrateIcons();
+  render();
+})();
+</script>
+
+</body>
+</html>
