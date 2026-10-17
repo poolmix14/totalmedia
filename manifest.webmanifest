@@ -1,6 +1,6 @@
 {
-  "name": "Conversor de Mídia",
-  "short_name": "Conversor",
+  "name": "Total Media",
+  "short_name": "Total Media",
   "description": "Converta imagens, vídeos e áudios direto no navegador.",
   "lang": "pt-BR",
   "start_url": "./index.html",
